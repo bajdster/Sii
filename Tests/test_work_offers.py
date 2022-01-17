@@ -3,6 +3,7 @@ import pytest
 from webdriver_manager.chrome import ChromeDriverManager
 
 from Pages.CareerSearch import CareerSearch
+from Pages.JobOffersVerification import JobOffers
 
 
 class TestWorkOfferSearch:
@@ -17,3 +18,5 @@ class TestWorkOfferSearch:
         self.driver.get("https://sii.pl/")
         search_work_offers = CareerSearch(self.driver)
         search_work_offers.work_search()
+        work_offers_verification = JobOffers(self.driver)
+        work_offers_verification.offers_from_lublin()
