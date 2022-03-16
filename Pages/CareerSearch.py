@@ -1,11 +1,14 @@
+import time
+
+from selenium.webdriver.support.wait import WebDriverWait
 
 
 class CareerSearch:
 
     def __init__(self, driver):
         self.driver = driver
-        self.careerLinkClass = "/html/body/div[1]/div[1]/div[2]/div[2]/div/ul/li[4]/a"
-        self.workOfferSpan = "/html/body/div[1]/div[5]/div[1]/div/div/div/div[1]/ul/li/a/span"
+        self.careerLinkClass = "/html/body/div[2]/div[1]/div[2]/div[2]/div/ul/li[4]/a"
+        self.workOfferSpan = "/html/body/div[2]/div[5]/div[1]/div/div/div/div[1]/ul/li/a/span"
         self.localizationXpath = "/html/body/section/div/div/div/div[2]/div[3]/div[2]/div/a"
         # nie wchodzi Lublin| moze trzeba pobrac wszystkie labele i ifem wybrac ten ktorego data-name ='lublin, bo nie chodzi w selektorze data-name'
 
@@ -20,11 +23,14 @@ class CareerSearch:
         self.categoriesTesting = "//span[text()='Testing & QA']"
         self.searchIcon = "//a[contains(@class, 'js-search-button')]"
 
+        #lista ofert z Lublina
+        self.job_localization_xpath = "//div[contains(@class, 'sii-o-grid__wrapper__item')]//h3[contains(@class, 'sii-o-card-job__title')]"
+
     def work_search(self):
         self.driver.find_element_by_xpath(self.careerLinkClass).click()
         self.driver.find_element_by_xpath(self.workOfferSpan).click()
+
         self.driver.find_element_by_xpath(self.localizationXpath).click()
-        print(len(self.localizationLublinSpan))
         elementLublin = self.driver.find_element_by_xpath(self.localizationLublinSpan)
         self.driver.execute_script("arguments[0].click();", elementLublin)
 
@@ -35,3 +41,27 @@ class CareerSearch:
         self.driver.execute_script("arguments[0].click();", elementCategories)
         self.driver.find_element_by_xpath(self.searchIcon).click()
 
+        time.sleep(5)
+
+        #self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        #przy powolnym scrollu łapie wszystkie 25 elementow, czyli tak jakby łapie te elementy które widzi
+
+        #kolejny pomysl to: zrobic wlasnego explicita ktory najpierw wczyta ile jest ofert z "znalezionych wynikow" i poczeka az ofert bedzie dokladnie tyle
+
+        jobs = self.driver.find_elements_by_xpath(self.job_localization_xpath)
+
+        search_results = self.driver.find_element_by_xpath("//span[contains(@class, 'js-ajax-load-number')]")
+        print(search_results.text)
+
+        #explicit wait nie działa, porownanie czy 27 rezulatow jest rowne jobs
+        """wait = WebDriverWait(self.driver, 10)
+        wait.until(lambda wb: len(jobs) == search_results)"""
+
+        for job in jobs:
+            print(job.text)
+
+        print("ofert z Lublina jest " + str(len(jobs)))
+        print(type(jobs))
+
+        #pobiera nie tą ilość ofert co trzeba
+        #spróbować nie z implicit wait a z explicit bądz fluent...
