@@ -1,9 +1,14 @@
 import time
 
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
 
 class CareerSearch:
+
+
 
     def __init__(self, driver):
         self.driver = driver
@@ -26,7 +31,14 @@ class CareerSearch:
         #lista ofert z Lublina
         self.job_localization_xpath = "//div[contains(@class, 'sii-o-grid__wrapper__item')]//h3[contains(@class, 'sii-o-card-job__title')]"
 
+        #lista dostępnych lokalizacji w ramach danej karty
+        self.cities_list = "sii-o-card-job__location__cities"
+
+
+
     def work_search(self):
+
+
         self.driver.find_element_by_xpath(self.careerLinkClass).click()
         self.driver.find_element_by_xpath(self.workOfferSpan).click()
 
@@ -34,34 +46,59 @@ class CareerSearch:
         elementLublin = self.driver.find_element_by_xpath(self.localizationLublinSpan)
         self.driver.execute_script("arguments[0].click();", elementLublin)
 
-        #ActionChains(self.driver).move_to_element(Lublin).click(Lublin).perform()
 
         self.driver.find_element_by_xpath(self.categories).click()
         elementCategories = self.driver.find_element_by_xpath(self.categoriesTesting)
         self.driver.execute_script("arguments[0].click();", elementCategories)
         self.driver.find_element_by_xpath(self.searchIcon).click()
+        time.sleep(3)
 
-        time.sleep(5)
+        #self.driver.execute_script("return arguments[0].scrollIntoView(true);", element)
 
-        #self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        #przy powolnym scrollu łapie wszystkie 25 elementow, czyli tak jakby łapie te elementy które widzi
+        self.driver.execute_script("window.scrollTo(0, 2100);")
+        time.sleep(3)
 
-        #kolejny pomysl to: zrobic wlasnego explicita ktory najpierw wczyta ile jest ofert z "znalezionych wynikow" i poczeka az ofert bedzie dokladnie tyle
 
-        jobs = self.driver.find_elements_by_xpath(self.job_localization_xpath)
+        wait = WebDriverWait(self.driver, 10)
+        jobs = wait.until(expected_conditions.visibility_of_all_elements_located((By.XPATH, self.job_localization_xpath)))
 
+        #pobranie miast przypisanych do ofert
+        cities_of_offert = self.driver.find_elements_by_class_name(self.cities_list)
+
+
+
+        # obsłużenie okienka z ilością wyników
         search_results = self.driver.find_element_by_xpath("//span[contains(@class, 'js-ajax-load-number')]")
         print(search_results.text)
+        self.results_digit = "".join(char for char in search_results.text if char.isdigit())
 
-        #explicit wait nie działa, porownanie czy 27 rezulatow jest rowne jobs
-        """wait = WebDriverWait(self.driver, 10)
-        wait.until(lambda wb: len(jobs) == search_results)"""
-
+        #wypisanie nazw ofert
+        counter = 1
         for job in jobs:
-            print(job.text)
 
-        print("ofert z Lublina jest " + str(len(jobs)))
-        print(type(jobs))
+            print(str(counter) + ". " + job.text)
+            counter += 1
+
+        print("Ofert z Lublina jest " + str(len(jobs)))
+
+
+
+        #self.driver.save_screenshot("sii.png")
+
+
+        assert len(jobs) == int(self.results_digit)
+
+        for city in cities_of_offert:
+            if "Lublin" in city.text:
+                return True
+        print("All offerts contain city of Lublin in it")
+
 
         #pobiera nie tą ilość ofert co trzeba
-        #spróbować nie z implicit wait a z explicit bądz fluent...
+
+        # przy powolnym scrollu łapie wszystkie 25 elementow, czyli tak jakby łapie te elementy które widzi
+
+        # kolejny pomysl to: zrobic wlasnego explicita ktory najpierw wczyta ile jest ofert z "znalezionych wynikow" i poczeka az ofert bedzie dokladnie tyle
+
+        # timeout exception, nie znajduje wszystkich wyników więc wywala
+        # jobs = WebDriverWait(self.driver, 10).until(lambda wd: len(wd.find_elements(By.XPATH, self.job_localization_xpath)) == int(self.results_digit))

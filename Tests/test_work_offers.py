@@ -11,7 +11,7 @@ class TestWorkOfferSearch:
     def setup(self):
         self.driver = webdriver.Chrome(ChromeDriverManager().install())
         self.driver.maximize_window()
-        self.driver.implicitly_wait(10)
+        #self.driver.implicitly_wait(10)
         yield
         #self.driver.quit()
     def test_work_offers(self, setup):
