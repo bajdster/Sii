@@ -18,5 +18,7 @@ class TestWorkOfferSearch:
         self.driver.get("https://sii.pl/")
         search_work_offers = CareerSearch(self.driver)
         search_work_offers.work_search()
+
+
         #work_offers_verification = JobOffers(self.driver)
         #work_offers_verification.offers_from_lublin()
